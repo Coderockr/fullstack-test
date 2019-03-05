@@ -19,7 +19,7 @@ __NOTE 2:__ For the images, you can download them from the unsplash.com API. EX:
 Build an API for a blog page that provides the following:
 
 1. A news feed that shows the articles.
-2. A way to create a new article with __title, author, cover image and body__.
+2. A way to create a new article with **title**, **author**, **cover image** and **body**.
 3. A way to store and get blog contacts (contact form).
 4. Please publish your solution into Github with a README.md file detailing the instructions on how to get the app up and running.
 5. You can use any backend language or framework to solve this challenge.
