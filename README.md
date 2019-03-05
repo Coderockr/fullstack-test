@@ -35,7 +35,7 @@ Create a Web interface for the API you created. Must have the following features
 1. Create a page to show the published articles.
 2. Implements a way to view a single article in the blog.
 3. Implements a way to create new articles.
-4. Create a page with a contact form, where the user can send their __name, email, phone, and message__.
+4. Create a page with a contact form, where the user can send their **name**, **email**, **phone**, and **message**.
 6. Avoid using huge commits that may hide your progress.
 
 Project Deadline
