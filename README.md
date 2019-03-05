@@ -11,7 +11,7 @@ Build an API to a blog page that provides the following:
 1. A news feed that shows your the articles.
 2. A way to create a new article with title, author, cover image and body
 3. A way for visitors to contact the blog (contact form)
-4. Please check your solution into Github with a README.md file detailing instructions on how to get the app up and running.
+4. Please publish your solution into Github with a README.md file detailing instructions on how to get the app up and running.
 5. You can use any backend language or framework to solve this challenge
 6. Avoid using huge commits hiding your progress. Feel free to work on a branch and use rebase to adjust your commits before submitting the final version.
 
