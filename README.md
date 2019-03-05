@@ -1,7 +1,7 @@
 Coding Challenge
 ================
 
-We recommend that you spend not more than 24 hours on the challenge.
+We recommend that you spend not more than 24 hours working on the challenge.
 
 #1. Challenge (API)
 ------------------
