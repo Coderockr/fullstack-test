@@ -1,10 +1,8 @@
 # Coding Challenge
-You should see this challenge as an opportunity to create an app following modern development best practices (givenyour platform of choice), but also feel free to use your own app architecture preferences (coding standards, codeorganization, third-party libraries, etc). It’s perfectly fine to use native code or any framework or librarie.
-
+You should see this challenge as an opportunity to create an app following modern development best practices (givenyour platform of choice), but also feel free to use your own app architecture preferences (coding standards, code organization, third-party libraries, etc). It’s perfectly fine to use vanilla or any framework or librarie.
 
 ## Scope
 The test is divided into two challenges. In the first you will build a simple blog API, and in the second implement an interface that consumes the data of your API.
-
 
 ## Design Reference
 Design is available in Figma at [https://www.figma.com/file/ImqUersZbn3WGyBdiEjlwKyQ/Coderockr-Front-end-Test](https://www.figma.com/file/ImqUersZbn3WGyBdiEjlwKyQ/Coderockr-Front-end-Test). If you haven't already, sign up for a free Figma account, so you can work with the design.
@@ -14,7 +12,6 @@ Prototype: [https://www.figma.com/proto/ImqUersZbn3WGyBdiEjlwKyQ/Coderockr-Front
 __NOTE 1:__ In this challenge we will not evaluate the implementation of design styles. __USE THE DESIGN MERELY AS A VISUAL AND STRUCTURAL REFERENCE.__ In fact, it’s perfectly fine to use some library of components to assist you in the development of the interface. Or if you prefer, feel free to implement your own components / styles.
 
 __NOTE 2:__ For the images, you can download them from the unsplash.com API. EX: ```https://source.unsplash.com/640x640/?rock-concert```
-
 
 ## 1. Challenge (API)
 Build an API for a blog page that provides the following:
@@ -33,7 +30,7 @@ Create a Web interface for the API you created. Must have the following features
 5. Create a page with a contact form, where the user can send their **name**, **email**, **phone**, and **message**.
 
 ## Deliverables
-The project source code and dependencies should be made available in GitHub. Here are the steps you shouldfollow:
+The project source code and dependencies should be made available in GitHub. Here are the steps you should follow:
 1. Create a public repository on GitHub (create an account if you don't have one).
 2. Create a "development" branch and commit the code to it. Do not push the code to the master branch.
 3. Create a "screenshots" sub-folder and include at least two screenshots of the app.
