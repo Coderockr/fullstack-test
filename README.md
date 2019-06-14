@@ -1,5 +1,5 @@
 # Coding Challenge
-You should see this challenge as an opportunity to create an app following modern development best practices (givenyour platform of choice), but also feel free to use your own app architecture preferences (coding standards, code organization, third-party libraries, etc). It’s perfectly fine to use vanilla or any framework or librarie.
+You should see this challenge as an opportunity to create an app following modern development best practices (given your platform of choice), but also feel free to use your own app architecture preferences (coding standards, code organization, third-party libraries, etc). It’s perfectly fine to use vanilla or any framework or librarie.
 
 ## Scope
 The test is divided into two challenges. In the first you will build a simple blog API, and in the second implement an interface that consumes the data of your API.
