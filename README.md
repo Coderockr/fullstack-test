@@ -73,6 +73,7 @@ The project source code and dependencies should be made available in GitHub. Her
    - A link to the API documentation.
 4. Once the work is complete, create a pull request from "development" into "main" and send us the link.
 5. Avoid using huge commits hiding your progress. Feel free to work on a branch and use `git rebase` to adjust your commits before submitting the final version.
+6. Create a "screenshots" sub-folder and include at least two screenshots of the app.
 
 ## Coding Standards
 When working on the project be as clean and consistent as possible.
@@ -89,6 +90,7 @@ Use the following checklist to ensure high quality of the project.
 - Is coding style consistent?
 - The API is well documented?
 - The API has unit tests?
+- Is the backend and frontend deploy-independent?
 
 ## Submission
 1. A link to the Github repository.
