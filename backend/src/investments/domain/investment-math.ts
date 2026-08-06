@@ -115,7 +115,7 @@ function addMonthsClamped(date: IsoDate, months: number): IsoDate {
  * how many times the (clamped) anniversary day has passed, inclusive.
  */
 // completedMonths é uma função que retorna o número de meses completos entre uma data de criação e uma data de referência
-    export function completedMonths(
+export function completedMonths(
   // Data de criação
   creationDate: IsoDate,
   // Data de referência
@@ -189,7 +189,7 @@ export function taxRate(
   return TAX_RATES.overTwoYears;
 }
 
-// WithdrawalBreakdown é uma interface que representa o resultado de uma retirada 
+// WithdrawalBreakdown é uma interface que representa o resultado de uma retirada
 export interface WithdrawalBreakdown {
   // Saldo em centavos
   balanceCents: number;
