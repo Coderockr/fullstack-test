@@ -1,0 +1,41 @@
+# compiled output
+/dist
+/node_modules
+/build
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+
+# Tests
+/coverage
+/.nyc_output
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+.settings/
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Keep environment variables out of version control
+.env
+
+# Prisma generated client
+/generated
+
+# AI tooling artifacts (installed automatically, not project code)
+/.agents
+/.claude
+/.windsurf
+/.cursor
+skills-lock.json

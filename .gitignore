@@ -1,0 +1,13 @@
+# OS
+.DS_Store
+
+# Editors
+.idea/
+.vscode/
+
+# AI tooling artifacts (generated automatically, not project code)
+.claude/
+.cursor/
+.windsurf/
+AGENTS.md
+CLAUDE.md
