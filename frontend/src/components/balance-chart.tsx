@@ -20,7 +20,8 @@ interface BalanceChartProps {
 export function BalanceChart({ points }: BalanceChartProps) {
   const [hover, setHover] = useState<number | null>(null);
 
-  const { xOf, yOf, yTicks, xTicks, realized, projected } = useMemo(() => {
+  const { xOf, yOf, yTicks, yTickLabels, xTicks, realized, projected } =
+    useMemo(() => {
     const balances = points.map((p) => p.balanceCents);
     const min = Math.min(...balances);
     const max = Math.max(...balances);
@@ -33,13 +34,25 @@ export function BalanceChart({ points }: BalanceChartProps) {
     const yOf = (cents: number) =>
       round1(MARGIN.top + PLOT_H - ((cents - yMin) / (yMax - yMin)) * PLOT_H);
     const yTicks = [min, (min + max) / 2, max];
+    // Faixas curtas fazem o formato compacto repetir rótulo ("R$ 1,1 mil"
+    // duas vezes); nesse caso, usa reais inteiros, que cabem na margem
+    const compact = yTicks.map((tick) => formatBRLCompact(tick));
+    const wholeReais = new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      maximumFractionDigits: 0,
+    });
+    const yTickLabels =
+      new Set(compact).size === compact.length
+        ? compact
+        : yTicks.map((tick) => wholeReais.format(tick / 100));
     const step = Math.max(1, Math.ceil(points.length / 6));
     const xTicks = points
       .map((p, i) => ({ point: p, index: i }))
       .filter(({ index }) => index % step === 0);
     const realized = points.filter((p) => !p.projected);
     const projected = points.slice(Math.max(realized.length - 1, 0));
-    return { xOf, yOf, yTicks, xTicks, realized, projected };
+    return { xOf, yOf, yTicks, yTickLabels, xTicks, realized, projected };
   }, [points]);
 
   if (points.length < 2) return null;
@@ -84,7 +97,7 @@ export function BalanceChart({ points }: BalanceChartProps) {
           </defs>
 
           {/* linhas de grade + rótulos do eixo Y */}
-          {yTicks.map((tick) => (
+          {yTicks.map((tick, index) => (
             <g key={tick}>
               <line
                 x1={MARGIN.left}
@@ -102,7 +115,7 @@ export function BalanceChart({ points }: BalanceChartProps) {
                 dominantBaseline="middle"
                 className="fill-muted text-[11px]"
               >
-                {formatBRLCompact(tick)}
+                {yTickLabels[index]}
               </text>
             </g>
           ))}

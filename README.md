@@ -1,110 +1,139 @@
-# Fullstack Test Project <img src="https://raw.githubusercontent.com/Coderockr/fullstack-test/refs/heads/main/coderockr.banner.svg" align="right" height="50px" />
+# Aporte — Gestão de Investimentos
 
-You should see this challenge as an opportunity to create an application following modern development best practices (given the stack of your choice), but also feel free to use your own architecture preferences (coding standards, code organization, third-party libraries, etc). It’s perfectly fine to use vanilla code or any framework or libraries.
+Aplicação fullstack para criar, acompanhar e sacar investimentos com rendimento
+composto de **0,52% ao mês** e imposto calculado sobre o ganho no momento do
+saque. Desenvolvida para o [desafio fullstack da Coderockr](./CHALLENGE.md).
 
-## Scope
+| | |
+|---|---|
+| **API (produção)** | https://investments-api-kgdh.onrender.com |
+| **Documentação da API (Swagger)** | https://investments-api-kgdh.onrender.com/docs |
+| **Frontend (produção)** | https://aporte-nine.vercel.app |
 
-In this challenge you should build a **fullstack application** (API + UI) for an application that stores and manages investments, it should have the following features:
+> ⚠️ A API roda no plano gratuito do Render e **hiberna após ~15 minutos de
+> inatividade** — o primeiro acesso pode levar até 1 minuto. Não é um bug.
 
-### Backend (API)
+![Tela de listagem](./screenshots/listagem.png)
 
-1. __Creation__ of an investment with an owner, a creation date and an amount.
-   1. The creation date of an investment can be today or a date in the past.
-   2. An investment should not be or become negative.
-2. __View__ of an investment with its initial amount and expected balance.
-   1. Expected balance should be the sum of the invested amount and the [gains][].
-   2. If an investment was already withdrawn then the balance must reflect the gains of that investment
-3. __Withdrawal__ of a investment.
-   1. The withdraw will always be the sum of the initial amount and its gains,
-      partial withdrawn is not supported.
-   2. The withdrawal date must be informmed by the user, and it can be a date in the past or today, but can't happen before the investment creation or the future.
-   3. [Taxes][taxes] need to be applied to the withdrawals before showing the final value.
-4. __List__ of a person's investments
-   1. This list should have pagination.
+## Stack e por que cada escolha
 
-### Frontend (UI)
+### Backend (`backend/`)
 
-1. __List__ of investments
-   - Display all investments with basic information (owner, date, amount, current balance, status)
-2. __View__ of a single investment
-   - Display detailed information including gains and final balance
-3. __Create__ investment form
-   - Allow users to create a new investment
-4. __Withdrawal__ action
-   - Allow users to perform a withdrawal and visualize the final taxed amount
+| Biblioteca | Por quê |
+|---|---|
+| **NestJS + TypeScript** | Estrutura de módulos/controllers/services que mantém a regra de negócio isolada, com Jest já configurado — dois itens do checklist do desafio (testes e organização) resolvidos pela plataforma. |
+| **Prisma 7** | Migrations versionadas no repositório: o schema evolui com commits auditáveis (`backend/prisma/migrations`). Client tipado gerado a partir do schema. |
+| **@prisma/adapter-pg + pg** | O Prisma 7 exige driver adapter explícito em runtime; `pg` é o driver Postgres padrão do Node. |
+| **@nestjs/swagger** | A documentação OpenAPI nasce dos decorators do próprio código — nunca desatualiza em relação aos endpoints. |
+| **class-validator / class-transformer** | Validação declarativa dos DTOs na borda HTTP (formato, limites), antes da regra de negócio. |
+| **dotenv** | Carrega o `.env` tanto para o CLI do Prisma quanto para a aplicação. |
 
-### Gain Calculation
+### Frontend (`frontend/`)
 
-The investment will pay 0.52% every month in the same day of the investment creation.
+| Biblioteca | Por quê |
+|---|---|
+| **Next.js 16 + TypeScript** | App Router com Server Components: as páginas de listagem e detalhe buscam dados no servidor; só formulários e o fluxo de saque hidratam JavaScript no cliente. |
+| **Tailwind CSS 4** | Design system próprio via tokens CSS (`globals.css`) — o tema inteiro troca editando um bloco de variáveis. |
 
-Given that the gain is paid every month, it should be treated as [compound gain][], which means that every new period (month) the amount gained will become part of the investment balance for the next payment.
+**Nenhuma outra dependência foi adicionada ao frontend** — gráfico, máscara de
+dinheiro, avatares e animações são feitos à mão. Num desafio que pede para
+"gerenciar dependências com sabedoria", preferi mostrar o que consigo construir
+sem biblioteca.
 
-### Taxation
+## Decisões técnicas principais
 
-When money is withdrawn, tax is triggered. Taxes apply only to the gain portion of the money withdrawn. For example, if the initial investment was 1000.00, the current balance is 1200.00, then the taxes will be applied to the 200.00.
+- **Dinheiro nunca é float.** Valores trafegam como **centavos inteiros**
+  (R$ 1.000,00 = `100000`) do banco (`BIGINT`) até a API; a formatação em reais
+  acontece só na exibição. Arredondamento com `Math.round`, uma única vez por
+  valor derivado.
+- **Datas como string ISO (`YYYY-MM-DD`), sem `Date`.** Comparação
+  lexicográfica é cronológica e elimina bugs de fuso horário (`new
+  Date('2024-01-31')` vira dia 30 no fuso de Brasília).
+- **Meses completos por aniversário, não dias ÷ 30.** O ganho é pago quando o
+  dia do mês da criação repete. Criado dia 31, o mês completa no **último dia**
+  de fevereiro (28/29) — convenção documentada e provada por teste.
+- **Fronteiras do imposto por aniversário de calendário:** exatamente 1 ano →
+  18,5%; exatamente 2 anos → 18,5%; 15% só a partir do dia seguinte ao segundo
+  aniversário. Leitura literal do enunciado ("less than", "older than").
+- **Validação em três camadas:** DTO na borda (formato), funções puras de
+  domínio (regras) e constraints `CHECK` no Postgres (última linha de defesa —
+  nem um bug de aplicação grava investimento negativo).
+- **Saque atômico:** `UPDATE ... WHERE withdrawn_at IS NULL`; se duas
+  requisições concorrerem, só uma grava e a outra recebe 409. Não há janela
+  entre ler e escrever.
+- **A matemática vive num único lugar** (`backend/src/investments/domain/
+  investment-math.ts`, funções puras, 10 testes). O frontend não recalcula
+  nada: até os pontos do gráfico vêm do endpoint `/timeline`, e a simulação de
+  saque do `/withdrawal-preview`.
+- **Deploy independente:** dois apps com `package.json` próprios, conversando
+  apenas por HTTP (`NEXT_PUBLIC_API_URL`). API no Render (blueprint versionado
+  em `render.yaml`), frontend na Vercel.
 
-The tax percentage changes according to the age of the investment:
-* If it is less than one year old, the percentage will be 22.5% (tax = 45.00).
-* If it is between one and two years old, the percentage will be 18.5% (tax = 37.00).
-* If older than two years, the percentage will be 15% (tax = 30.00).
+### Uma observação sobre o enunciado
 
-## Design Reference
+O exemplo da seção de taxação (investimento de 1.000,00 com saldo de 1.200,00
+tributado a 22,5%) é **matematicamente inalcançável** com 0,52% ao mês em menos
+de um ano: 20% de ganho requer ~35 meses, quando a alíquota já seria 15%.
+Tratei o exemplo como ilustração da regra "imposto só sobre o ganho", não como
+caso real.
 
-Use the following Figma as a visual and structural reference for the frontend interface:
+## Como rodar localmente
 
-- Figma: https://www.figma.com/design/jkilpjx9Q6hZnnCBHZcAWG/Coderockr-Fullstack---Test?node-id=0-1&p=f&t=thQWSMxSHxCJTtAs-0
-- Prototype: https://www.figma.com/proto/jkilpjx9Q6hZnnCBHZcAWG/Coderockr-Fullstack---Test?node-id=1-2&p=f&t=thQWSMxSHxCJTtAs-0&scaling=scale-down-width&content-scaling=fixed&page-id=0%3A1
+Pré-requisitos: Node.js 22+.
 
-__NOTE:__ The layout will be evaluated, but not strictly against the provided design. You can use it as a guideline for structure and organization. Feel free to be creative and enhance the interface with your own ideas, such as visual effects, animations, transitions between screens, and responsive behavior. You may also use UI libraries or create your own components.
+### API
 
-## Requirements
-1. Create project using any technology of your preference. It’s perfectly OK to use vanilla code or any framework or libraries;
-2. Although you can use as many dependencies as you want, you should manage them wisely;
-3. It is not necessary to send the notification emails, however, the code required for that would be welcome;
-4. The API must be documented in some way.
+```bash
+cd backend
+npm install
+cp .env.example .env          # DATABASE_URL e PORT
+npx prisma dev --detach       # Postgres local do Prisma, sem Docker
+npx prisma migrate dev        # aplica as migrations
+npx prisma generate           # gera o client
+npm run start:dev             # API em http://localhost:3001, Swagger em /docs
+```
 
-## Deliverables
-The project source code and dependencies should be made available in GitHub. Here are the steps you should follow:
-1. Fork this repository to your GitHub account (create an account if you don't have one, you will need it working with us).
-2. Create a "development" branch and commit the code to it. Do not push the code to the main branch.
-3. Include a README file that describes:
-   - Special build instructions, if any
-   - List of third-party libraries used and short description of why/how they were used
-   - A link to the API documentation.
-4. Once the work is complete, create a pull request from "development" into "main" and send us the link.
-5. Avoid using huge commits hiding your progress. Feel free to work on a branch and use `git rebase` to adjust your commits before submitting the final version.
-6. Create a "screenshots" sub-folder and include at least two screenshots of the app.
+### Testes
 
-## Coding Standards
-When working on the project be as clean and consistent as possible.
+```bash
+cd backend
+npm test                      # 10 testes de domínio + 1 do template
+```
 
-## Project Deadline
-Ideally you'd finish the test project in 5 days. It shouldn't take you longer than a entire week.
+### Frontend
 
-## Quality Assurance
-Use the following checklist to ensure high quality of the project.
+```bash
+cd frontend
+npm install
+cp .env.example .env.local    # NEXT_PUBLIC_API_URL=http://localhost:3001
+npm run dev                   # http://localhost:3000
+```
 
-### General
-- First of all, the application should run without errors.
-- Are all requirements set above met?
-- Is coding style consistent?
-- The API is well documented?
-- The API has unit tests?
-- Is the backend and frontend deploy-independent?
+## Documentação da API
 
-## Submission
-1. A link to the Github repository.
-2. Briefly describe how you decided on the tools that you used.
+Swagger UI gerado pelos decorators do NestJS:
 
-## Have Fun Coding 🤘
-- This challenge description is intentionally vague in some aspects, but if you need assistance feel free to ask for help.
-- If any of the seems out of your current level, you may skip it, but remember to tell us about it in the pull request.
+- Produção: **https://investments-api-kgdh.onrender.com/docs**
+- Local: http://localhost:3001/docs
 
-## Credits
+| Método | Rota | Descrição |
+|---|---|---|
+| `POST` | `/investments` | Cria investimento (valor ≥ 0, data hoje ou passada) |
+| `GET` | `/investments` | Lista paginada, filtro opcional por `owner` |
+| `GET` | `/investments/:id` | Detalhe com saldo esperado e ganho |
+| `GET` | `/investments/:id/withdrawal-preview` | Simula o saque sem executar |
+| `GET` | `/investments/:id/timeline` | Saldo mês a mês (+12 meses de projeção) |
+| `POST` | `/investments/:id/withdraw` | Executa o saque (total, único) |
 
-This coding challenge was inspired on [kinvoapp/kinvo-back-end-test](https://github.com/kinvoapp/kinvo-back-end-test/blob/2f17d713de739e309d17a1a74a82c3fd0e66d128/README.md)
+## Screenshots
 
-[gains]: #gain-calculation
-[taxes]: #taxation
-[interest]: #interest-calculation
-[compound gain]: https://www.investopedia.com/terms/g/gain.asp
+As capturas estão em [`screenshots/`](./screenshots).
+
+## Limitações conhecidas e próximos passos
+
+- **E-mails de notificação** não foram implementados (o enunciado os torna
+  opcionais). O caminho previsto: um `NotificationsService` chamado pelo
+  `InvestmentsService` após o saque, com um provedor SMTP plugável.
+- **Cold start** no plano gratuito do Render (~50s após inatividade).
+- A listagem usa paginação por offset — suficiente aqui; com milhões de linhas
+  eu migraria para cursor/keyset.
