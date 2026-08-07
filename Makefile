@@ -64,7 +64,7 @@ test: ## Run backend + frontend test suites
 
 lint: ## Style + static analysis + type-check
 	$(APP) ./vendor/bin/pint --test
-	$(APP) ./vendor/bin/phpstan analyse
+	$(APP) ./vendor/bin/phpstan analyse --memory-limit=1G
 	$(WEB) npm run lint
 	$(WEB) npm run type-check
 
