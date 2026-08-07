@@ -12,6 +12,7 @@ COPY --from=mlocati/php-extension-installer:2 /usr/bin/install-php-extensions /u
 # formatting · zip -> composer · opcache -> perf · pcntl -> queue:work signals
 RUN install-php-extensions \
       pdo_pgsql pgsql \
+      pdo_sqlite \
       bcmath \
       intl \
       zip \

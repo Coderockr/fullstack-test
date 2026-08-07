@@ -14,3 +14,6 @@ Thumbs.db
 # Local docker volumes / dumps
 /data/
 *.sql.gz
+
+# Internal planning artifact (dropped by plan mode)
+/plan.md
