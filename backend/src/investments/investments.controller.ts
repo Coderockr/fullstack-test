@@ -24,6 +24,8 @@ import {
   InvestmentDetailDto,
   InvestmentResponseDto,
   PaginatedInvestmentsDto,
+  TimelineDto,
+  WithdrawalResultDto,
 } from './dto/investment-response.dto';
 import { ListInvestmentsQueryDto } from './dto/list-investments-query.dto';
 import { WithdrawInvestmentDto } from './dto/withdraw-investment.dto';
@@ -52,6 +54,41 @@ export class InvestmentsController {
     @Query() query: ListInvestmentsQueryDto,
   ): Promise<PaginatedInvestmentsDto> {
     return this.investmentsService.list(query);
+  }
+
+  @Get(':id/withdrawal-preview')
+  @ApiOperation({
+    summary: 'Simula um saque sem executá-lo',
+    description:
+      'Mesmas validações e cálculo do saque real (saldo, alíquota, imposto e ' +
+      'líquido), mas nada é gravado. Alimenta a confirmação no frontend.',
+  })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiOkResponse({ type: WithdrawalResultDto })
+  @ApiNotFoundResponse({ description: 'Investimento não encontrado' })
+  @ApiBadRequestResponse({
+    description: 'Data mal formada, anterior à criação ou no futuro',
+  })
+  @ApiConflictResponse({ description: 'Investimento já foi sacado' })
+  previewWithdrawal(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Query() query: WithdrawInvestmentDto,
+  ): Promise<WithdrawalResultDto> {
+    return this.investmentsService.previewWithdrawal(id, query);
+  }
+
+  @Get(':id/timeline')
+  @ApiOperation({
+    summary: 'Série mensal de saldo do investimento',
+    description:
+      'Saldo em cada aniversário mensal (datas em que o ganho é pago). ' +
+      'Investimentos ativos incluem 12 meses de projeção futura.',
+  })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiOkResponse({ type: TimelineDto })
+  @ApiNotFoundResponse({ description: 'Investimento não encontrado' })
+  timeline(@Param('id', new ParseUUIDPipe()) id: string): Promise<TimelineDto> {
+    return this.investmentsService.timeline(id);
   }
 
   @Get(':id')

@@ -92,7 +92,12 @@ function toIso({ year, month, day }: CalendarDate): IsoDate {
 }
 
 // addMonthsClamped é uma função que adiciona um número de meses a uma string ISO e retorna uma string ISO
-function addMonthsClamped(date: IsoDate, months: number): IsoDate {
+/**
+ * Aniversário de `date` após `months` meses; quando o dia não existe no mês
+ * alvo (31/01 → fev), usa o último dia do mês. Exportada porque a timeline
+ * de saldo usa as mesmas datas de aniversário que pagam o ganho.
+ */
+export function addMonthsClamped(date: IsoDate, months: number): IsoDate {
   // Converte a string ISO em um objeto CalendarDate
   const { year, month, day } = parse(date);
   // Calcula o total de meses

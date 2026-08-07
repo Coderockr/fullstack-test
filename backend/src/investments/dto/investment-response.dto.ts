@@ -91,6 +91,28 @@ export class InvestmentDetailDto extends InvestmentResponseDto {
   withdrawal: WithdrawalResultDto | null;
 }
 
+export class TimelinePointDto {
+  @ApiProperty({ example: '2024-02-29', description: 'Data do aniversário mensal (YYYY-MM-DD)' })
+  date: string;
+
+  @ApiProperty({ example: 1, description: 'Quantidade de meses completos nesse ponto' })
+  monthIndex: number;
+
+  @ApiProperty({ example: 100520, description: 'Saldo em centavos nesse ponto' })
+  balanceCents: number;
+
+  @ApiProperty({
+    example: false,
+    description: 'true = projeção futura; false = ganho já realizado',
+  })
+  projected: boolean;
+}
+
+export class TimelineDto {
+  @ApiProperty({ type: [TimelinePointDto] })
+  points: TimelinePointDto[];
+}
+
 export class PaginatedInvestmentsDto {
   @ApiProperty({ type: [InvestmentResponseDto] })
   data: InvestmentResponseDto[];

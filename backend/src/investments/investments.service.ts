@@ -2,9 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Investment } from '../../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import {
+  addMonthsClamped,
   assertValidCreation,
   assertValidWithdrawal,
   balanceCents,
+  completedMonths,
   computeWithdrawal,
   DomainRuleError,
   type IsoDate,
@@ -14,6 +16,8 @@ import {
   InvestmentDetailDto,
   InvestmentResponseDto,
   PaginatedInvestmentsDto,
+  TimelineDto,
+  WithdrawalResultDto,
 } from './dto/investment-response.dto';
 import { ListInvestmentsQueryDto } from './dto/list-investments-query.dto';
 import { WithdrawInvestmentDto } from './dto/withdraw-investment.dto';
@@ -125,6 +129,70 @@ export class InvestmentsService {
       );
     }
     return this.findOne(id);
+  }
+
+  // Mesmas validações e conta do saque real, sem gravar nada:
+  // é o que alimenta a tela de "simular antes de confirmar"
+  async previewWithdrawal(
+    id: string,
+    dto: WithdrawInvestmentDto,
+  ): Promise<WithdrawalResultDto> {
+    const today = this.todayIso();
+    const investment = await this.prisma.investment.findUnique({
+      where: { id },
+    });
+    if (!investment) {
+      throw new NotFoundException(`Investment ${id} not found`);
+    }
+    assertValidWithdrawal({
+      creationDate: this.fromDbDate(investment.creationDate),
+      withdrawalDate: dto.withdrawalDate,
+      today,
+      withdrawnAt: investment.withdrawnAt
+        ? this.fromDbDate(investment.withdrawnAt)
+        : null,
+    });
+    return {
+      withdrawalDate: dto.withdrawalDate,
+      ...computeWithdrawal(
+        Number(investment.amountCents),
+        this.fromDbDate(investment.creationDate),
+        dto.withdrawalDate,
+      ),
+    };
+  }
+
+  // Série mensal de saldo nas datas de aniversário (as datas em que o ganho
+  // é pago). Para investimentos ativos, projeta 12 meses à frente.
+  async timeline(id: string): Promise<TimelineDto> {
+    const today = this.todayIso();
+    const investment = await this.prisma.investment.findUnique({
+      where: { id },
+    });
+    if (!investment) {
+      throw new NotFoundException(`Investment ${id} not found`);
+    }
+    const creationDate = this.fromDbDate(investment.creationDate);
+    const withdrawnAt = investment.withdrawnAt
+      ? this.fromDbDate(investment.withdrawnAt)
+      : null;
+    const amountCents = Number(investment.amountCents);
+    const endDate = withdrawnAt ?? today;
+    const realizedMonths = completedMonths(creationDate, endDate);
+    const projectedMonths = withdrawnAt ? 0 : 12;
+    const points = Array.from(
+      { length: realizedMonths + projectedMonths + 1 },
+      (_, monthIndex) => {
+        const date = addMonthsClamped(creationDate, monthIndex);
+        return {
+          date,
+          monthIndex,
+          balanceCents: balanceCents(amountCents, creationDate, date),
+          projected: monthIndex > realizedMonths,
+        };
+      },
+    );
+    return { points };
   }
 
   async create(dto: CreateInvestmentDto): Promise<InvestmentResponseDto> {
