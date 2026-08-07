@@ -11,3 +11,17 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model Investment {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  owner        String
+  amountCents  BigInt    @map("amount_cents")
+  creationDate DateTime  @map("creation_date") @db.Date
+  // null = ativo; preenchido = sacado nessa data (status é derivado, sem coluna própria)
+  withdrawnAt  DateTime? @map("withdrawn_at") @db.Date
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([owner, creationDate])
+  @@map("investments")
+}
