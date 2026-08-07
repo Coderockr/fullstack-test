@@ -1,0 +1,33 @@
+# Production-ish overlay: baked images, no bind mounts, static SPA behind nginx.
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+# Demonstrates that both apps build & deploy independently from source.
+
+services:
+  app:
+    build:
+      target: final
+    env_file:
+      - ./api/.env
+    volumes: []          # code is baked into the image, not mounted
+
+  nginx:
+    volumes:
+      - ./docker/nginx/api.conf:/etc/nginx/conf.d/default.conf:ro
+    # NOTE: for a real deploy, copy api/public into the nginx image instead of
+    # mounting; kept minimal here since app+nginx share the same host in this demo.
+
+  queue:
+    build:
+      target: final
+    volumes: []
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      target: serve
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080/api}
+    ports:
+      - "${WEB_HTTP_PORT:-5173}:80"
+    volumes: []
