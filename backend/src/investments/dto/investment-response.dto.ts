@@ -35,6 +35,62 @@ export class InvestmentResponseDto {
   withdrawnAt: string | null;
 }
 
+export class WithdrawalResultDto {
+  @ApiProperty({
+    example: '2026-08-07',
+    description: 'Data do saque (YYYY-MM-DD)',
+  })
+  withdrawalDate: string;
+
+  @ApiProperty({
+    example: 120528,
+    description: 'Saldo bruto na data do saque, em centavos',
+  })
+  balanceCents: number;
+
+  @ApiProperty({
+    example: 20528,
+    description: 'Ganho na data do saque, em centavos',
+  })
+  gainCents: number;
+
+  @ApiProperty({
+    example: 0.15,
+    description:
+      'Alíquota aplicada sobre o ganho, conforme a idade do investimento: ' +
+      '< 1 ano → 0.225; entre 1 e 2 anos → 0.185; > 2 anos → 0.15',
+  })
+  taxRate: number;
+
+  @ApiProperty({
+    example: 3079,
+    description: 'Imposto em centavos (incide só sobre o ganho)',
+  })
+  taxCents: number;
+
+  @ApiProperty({
+    example: 117449,
+    description: 'Valor líquido recebido, em centavos',
+  })
+  netCents: number;
+}
+
+export class InvestmentDetailDto extends InvestmentResponseDto {
+  @ApiProperty({
+    example: 520,
+    description: 'Ganho acumulado em centavos (saldo − valor inicial)',
+  })
+  gainCents: number;
+
+  @ApiProperty({
+    type: WithdrawalResultDto,
+    nullable: true,
+    description:
+      'Detalhes do saque, ou null se o investimento ainda está ativo',
+  })
+  withdrawal: WithdrawalResultDto | null;
+}
+
 export class PaginatedInvestmentsDto {
   @ApiProperty({ type: [InvestmentResponseDto] })
   data: InvestmentResponseDto[];

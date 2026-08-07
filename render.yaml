@@ -1,0 +1,17 @@
+# Blueprint de deploy da API no Render (https://render.com/docs/blueprint-spec)
+# O frontend é deployado separadamente na Vercel — deploys independentes.
+services:
+  - type: web
+    name: investments-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    branch: development
+    # --include=dev: o build precisa das devDependencies (nest cli, prisma cli, typescript)
+    # mesmo com NODE_ENV=production; as migrations rodam ao final de cada build
+    buildCommand: npm ci --include=dev && npx prisma generate && npm run build && npx prisma migrate deploy
+    startCommand: node dist/src/main.js
+    healthCheckPath: /
+    envVars:
+      - key: DATABASE_URL
+        sync: false # valor secreto, preenchido manualmente no painel do Render

@@ -1,17 +1,22 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Investment } from '../../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   assertValidCreation,
+  assertValidWithdrawal,
   balanceCents,
+  computeWithdrawal,
+  DomainRuleError,
   type IsoDate,
 } from './domain/investment-math';
 import { CreateInvestmentDto } from './dto/create-investment.dto';
 import {
+  InvestmentDetailDto,
   InvestmentResponseDto,
   PaginatedInvestmentsDto,
 } from './dto/investment-response.dto';
 import { ListInvestmentsQueryDto } from './dto/list-investments-query.dto';
+import { WithdrawInvestmentDto } from './dto/withdraw-investment.dto';
 
 @Injectable()
 export class InvestmentsService {
@@ -54,6 +59,72 @@ export class InvestmentsService {
       status: withdrawnAt ? 'WITHDRAWN' : 'ACTIVE',
       withdrawnAt,
     };
+  }
+
+  private toDetail(
+    investment: Investment,
+    today: IsoDate,
+  ): InvestmentDetailDto {
+    const base = this.toResponse(investment, today);
+    const withdrawnAt = base.withdrawnAt;
+    return {
+      ...base,
+      gainCents: base.balanceCents - base.amountCents,
+      withdrawal: withdrawnAt
+        ? {
+            withdrawalDate: withdrawnAt,
+            ...computeWithdrawal(
+              base.amountCents,
+              base.creationDate,
+              withdrawnAt,
+            ),
+          }
+        : null,
+    };
+  }
+
+  async findOne(id: string): Promise<InvestmentDetailDto> {
+    const investment = await this.prisma.investment.findUnique({
+      where: { id },
+    });
+    if (!investment) {
+      throw new NotFoundException(`Investment ${id} not found`);
+    }
+    return this.toDetail(investment, this.todayIso());
+  }
+
+  async withdraw(
+    id: string,
+    dto: WithdrawInvestmentDto,
+  ): Promise<InvestmentDetailDto> {
+    const today = this.todayIso();
+    const investment = await this.prisma.investment.findUnique({
+      where: { id },
+    });
+    if (!investment) {
+      throw new NotFoundException(`Investment ${id} not found`);
+    }
+    assertValidWithdrawal({
+      creationDate: this.fromDbDate(investment.creationDate),
+      withdrawalDate: dto.withdrawalDate,
+      today,
+      withdrawnAt: investment.withdrawnAt
+        ? this.fromDbDate(investment.withdrawnAt)
+        : null,
+    });
+    // `withdrawnAt: null` no where torna o update atômico: se duas requisições
+    // concorrerem, só uma grava; a outra cai no count 0
+    const updated = await this.prisma.investment.updateMany({
+      where: { id, withdrawnAt: null },
+      data: { withdrawnAt: this.toDbDate(dto.withdrawalDate) },
+    });
+    if (updated.count === 0) {
+      throw new DomainRuleError(
+        'ALREADY_WITHDRAWN',
+        'Investment has already been withdrawn; partial or repeated withdrawals are not supported',
+      );
+    }
+    return this.findOne(id);
   }
 
   async create(dto: CreateInvestmentDto): Promise<InvestmentResponseDto> {
