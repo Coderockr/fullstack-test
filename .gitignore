@@ -1,0 +1,16 @@
+# Root-level ignores (each app also has its own .gitignore)
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+*.log
+
+# Root env used by docker-compose interpolation
+/.env
+
+# Local docker volumes / dumps
+/data/
+*.sql.gz
