@@ -6,6 +6,7 @@ Thumbs.db
 *.swp
 .idea/
 .vscode/
+/.claude/
 *.log
 
 # Root env used by docker-compose interpolation
@@ -15,5 +16,5 @@ Thumbs.db
 /data/
 *.sql.gz
 
-# Internal planning artifact (dropped by plan mode)
+# Local planning notes
 /plan.md
