@@ -12,7 +12,7 @@ WEB       := $(DC) exec -T web
 .PHONY: help up down destroy build install migrate seed fresh key test e2e lint fix docs logs shell psql wait-db env
 
 help: ## Show this help
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2}'
 
 env: ## Create .env files from examples if missing
@@ -63,7 +63,10 @@ test: ## Run backend + frontend test suites
 	$(WEB) npm run test -- --run
 
 e2e: ## Run the critical user journeys in Chromium
-	cd web && npm run test:e2e
+	@status=0; \
+		$(DC) --profile e2e run --rm e2e || status=$$?; \
+		$(DC) --profile e2e rm -sf e2e-api-proxy >/dev/null; \
+		exit $$status
 
 lint: ## Style + static analysis + type-check
 	$(APP) ./vendor/bin/pint --test

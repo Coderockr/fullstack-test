@@ -78,8 +78,6 @@ Design patterns on display: **Value Object, Strategy, Repository + Dependency In
 ## Prerequisites
 
 - **Docker** 20.10+ (Compose v2) and **Make**. Nothing else — no local PHP/Node needed.
-- The optional E2E suite additionally needs **Node.js 20+** and Playwright's Chromium
-  on the host (`cd web && npm ci && npx playwright install chromium`).
 - Runs natively on Apple Silicon (arm64) and x86-64.
 
 ## Quick start
@@ -109,6 +107,9 @@ in a single command. Then open:
 
 - **Apple Silicon:** all images are multi-arch, so **no `platform:` flags** are needed (avoid them — they force slow emulation).
 - **First run:** the queue worker may start before migrations create the `jobs` table; it is set to auto-restart and recovers on its own. Give it a few seconds to deliver the first e-mails to Mailpit.
+- **First E2E run:** `make e2e` downloads the official Playwright image with
+  Chromium. The initial download is large, but subsequent runs reuse Docker's
+  local image cache. No host Node.js, npm or browser installation is required.
 - **Reset everything** (wipe the database and re-seed):
   ```bash
   make destroy && make up
@@ -171,7 +172,7 @@ make lint    # Pint + PHPStan/Larastan + ESLint + vue-tsc
 ```
 
 - **Backend:** 63 tests (Pest). The domain calculators have 100% unit coverage against the challenge's numeric vectors; feature tests cover every endpoint, validation rule, authorization (403/404/409) and the queued mail. Tests run on in-memory SQLite for speed and portability (the app itself runs on PostgreSQL).
-- **Frontend:** Vitest unit tests for the currency/date composables; two Playwright E2E scenarios cover registration, investment creation, compounded balance, withdrawal preview and settlement; `vue-tsc` type-checking; ESLint (vue-ts) + Prettier. Run `make up` before `make e2e`; screenshots, traces and the HTML report are retained when a scenario fails.
+- **Frontend:** Vitest unit tests for the currency/date composables; two Playwright E2E scenarios cover registration, investment creation, compounded balance, withdrawal preview and settlement; `vue-tsc` type-checking; ESLint (vue-ts) + Prettier. Run `make up` before `make e2e`; Playwright and Chromium run in Docker, while screenshots, traces and the HTML report are retained when a scenario fails.
 - Static analysis: **Larastan level 6**; style: **Laravel Pint** (strict types enforced).
 
 ## API documentation
