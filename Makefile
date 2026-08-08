@@ -9,7 +9,7 @@ APP       := $(DC) exec -T app
 WEB       := $(DC) exec -T web
 
 .DEFAULT_GOAL := help
-.PHONY: help up down destroy build install migrate seed fresh key test lint fix docs logs shell psql wait-db env
+.PHONY: help up down destroy build install migrate seed fresh key test e2e lint fix docs logs shell psql wait-db env
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -61,6 +61,9 @@ key: ## Generate the Laravel app key
 test: ## Run backend + frontend test suites
 	$(APP) php artisan test
 	$(WEB) npm run test -- --run
+
+e2e: ## Run the critical user journeys in Chromium
+	cd web && npm run test:e2e
 
 lint: ## Style + static analysis + type-check
 	$(APP) ./vendor/bin/pint --test
