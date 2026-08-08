@@ -1,7 +1,7 @@
 #!/bin/sh
 # Dev entrypoint for the php-fpm container.
-# Keeps the container self-healing without owning migrations/seeds
-# (those are orchestrated once by `make up` to avoid app/queue races).
+# Keeps the development container self-healing, including when developers use
+# `docker compose up` directly instead of the Makefile wrapper.
 set -e
 
 cd /var/www/html
@@ -38,7 +38,14 @@ until php -r '
 done
 echo "[entrypoint] database is up."
 
-# 4. Make sure writable dirs are writable.
+# 4. Prepare the database from the php-fpm service only. The seeder is
+# idempotent, so this is safe on subsequent container starts.
+if [ "${1:-}" = "php-fpm" ]; then
+  echo "[entrypoint] running migrations and ensuring demo data exists..."
+  php artisan migrate --seed --force
+fi
+
+# 5. Make sure writable dirs are writable.
 chmod -R ug+rw storage bootstrap/cache 2>/dev/null || true
 
 exec "$@"
