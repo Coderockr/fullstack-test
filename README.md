@@ -115,6 +115,41 @@ in a single command. Then open:
   ```
 - Run `make help` to list every target.
 
+## Troubleshooting
+
+### Composer fails while extracting packages
+
+On an interrupted or unstable first download, Composer may report messages such
+as `End-of-central-directory signature not found`, `not a zipfile` or
+`Install of ... failed`. These errors indicate an incomplete package archive,
+not an incompatible PHP or Composer version.
+
+First, retry the idempotent setup command so Composer can complete the partial
+installation:
+
+```bash
+make up
+```
+
+If the installation remains inconsistent, recreate the local environment and
+run the setup from a clean state:
+
+```bash
+make destroy
+make up
+```
+
+> **Warning:** `make destroy` removes the local PostgreSQL and Docker volumes.
+> Use it only when local development data can be discarded. It does not affect
+> source files or anything committed to Git.
+
+If extraction errors continue after the clean setup, confirm that Docker has
+enough disk space and that the network is stable, then inspect the startup logs:
+
+```bash
+docker compose logs --tail=100 app queue
+```
+
 ## Configuration
 
 Three independent `.env` scopes keep the apps decoupled:
