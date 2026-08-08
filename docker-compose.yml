@@ -61,6 +61,8 @@ services:
       dockerfile: docker/php/Dockerfile
       target: dev
     command: php artisan queue:work --tries=3 --timeout=90 --sleep=1
+    # Restarts until migrations have created the jobs table (first-run race).
+    restart: unless-stopped
     env_file:
       - ./api/.env
     volumes:
