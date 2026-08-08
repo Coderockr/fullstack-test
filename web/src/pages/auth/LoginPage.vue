@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useToast } from '@/composables/useToast'
 import { ApiError } from '@/types/api'
 import logo from '@/assets/figma/coderockr-logo.svg'
+import PasswordInput from '@/components/common/PasswordInput.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -51,11 +52,9 @@ async function submit() {
       </div>
       <div>
         <label for="password" class="field-label">Password</label>
-        <input
+        <PasswordInput
           id="password"
           v-model="password"
-          type="password"
-          class="field-input"
           required
           autocomplete="current-password"
         />

@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useToast } from '@/composables/useToast'
 import { ApiError } from '@/types/api'
 import logo from '@/assets/figma/coderockr-logo.svg'
+import PasswordInput from '@/components/common/PasswordInput.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -53,17 +54,21 @@ async function submit() {
       </div>
       <div>
         <label for="password" class="field-label">Password</label>
-        <input id="password" v-model="form.password" type="password" class="field-input" required />
+        <PasswordInput
+          id="password"
+          v-model="form.password"
+          required
+          autocomplete="new-password"
+        />
         <p v-if="errors.password" class="field-error">{{ errors.password[0] }}</p>
       </div>
       <div>
         <label for="password_confirmation" class="field-label">Confirm password</label>
-        <input
+        <PasswordInput
           id="password_confirmation"
           v-model="form.password_confirmation"
-          type="password"
-          class="field-input"
           required
+          autocomplete="new-password"
         />
       </div>
       <button type="submit" class="btn-primary w-full" :disabled="loading">
