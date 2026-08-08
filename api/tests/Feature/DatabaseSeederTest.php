@@ -7,6 +7,10 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 it('seeds an idempotent demo dataset with valid login credentials', function () {
+    expect(app()->environment('testing'))->toBeTrue()
+        ->and(config('database.default'))->toBe('sqlite')
+        ->and(config('database.connections.sqlite.database'))->toBe(':memory:');
+
     $this->seed();
     $this->seed();
 
