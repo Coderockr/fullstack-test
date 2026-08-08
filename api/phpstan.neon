@@ -1,0 +1,15 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+        - database/factories
+        - database/seeders
+        - routes
+
+    # Level 6 is a realistic, high-signal bar for a greenfield app.
+    # The goal is to ratchet toward level 8 over time.
+    level: 6
+
+    checkModelProperties: true

@@ -1,0 +1,63 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  @apply min-h-screen bg-[#f3f4f6] font-sans text-[#111827] antialiased;
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-[#1c64f2] px-[17px] py-[9px] text-sm font-semibold text-white transition hover:bg-[#1a56db] focus:ring-2 focus:ring-blue-500/40 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-[#e5e7eb] bg-white px-[17px] py-[9px] text-sm font-semibold text-[#4b5563] transition hover:bg-[#f9fafb] disabled:opacity-50;
+  }
+  .btn-danger {
+    @apply inline-flex items-center justify-center rounded px-[15px] py-1 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50;
+    background: #e02424;
+  }
+  .btn-table {
+    @apply inline-flex items-center justify-center rounded bg-[#1c64f2] px-[15px] py-1 text-sm font-semibold text-white transition hover:bg-[#1a56db];
+  }
+  .field-input {
+    @apply h-[45px] w-full rounded-2xl border border-[#969696] bg-white px-[15px] text-base text-[#111827] outline-none transition placeholder:text-[#6b7280] focus:border-[#1c64f2] focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-[#e5e7eb] disabled:text-[#6b7280];
+  }
+  .field-label {
+    @apply mb-2 block text-base font-bold text-[#4d4c4c];
+  }
+  .field-error {
+    @apply mt-1 text-xs text-[#c81e1e];
+  }
+  .card {
+    @apply rounded-2xl bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.1)];
+  }
+  .section-title {
+    @apply text-xl leading-[1.5] font-semibold text-[#111827];
+  }
+  .figma-divider {
+    @apply h-px w-full bg-[#e5e7eb];
+  }
+}
+
+/* Route transition */
+.fade-enter-active,
+.fade-leave-active {
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+.fade-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}

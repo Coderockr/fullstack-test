@@ -1,0 +1,119 @@
+# Dev topology: php-fpm + nginx (API) + Postgres + Mailpit + queue worker + Vite (SPA).
+# All images are multi-arch (native arm64 on Apple Silicon) — no `platform:` pins.
+# One command brings everything up: `make up`.
+
+name: ${COMPOSE_PROJECT_NAME:-coderockr}
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-investments}
+      POSTGRES_USER: ${DB_USERNAME:-investments}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-investments} -d ${DB_DATABASE:-investments}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:latest
+    environment:
+      MP_MAX_MESSAGES: 500
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: dev
+    env_file:
+      - ./api/.env
+    volumes:
+      - ./api:/var/www/html
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    # exposes php-fpm on :9000 to nginx/queue on the internal network only
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "${API_HTTP_PORT:-8080}:80"
+    volumes:
+      - ./api:/var/www/html:ro
+      - ./docker/nginx/api.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+
+  queue:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: dev
+    command: php artisan queue:work --tries=3 --timeout=90 --sleep=1
+    # Restarts until migrations have created the jobs table (first-run race).
+    restart: unless-stopped
+    env_file:
+      - ./api/.env
+    volumes:
+      - ./api:/var/www/html
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      target: dev
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8080/api}
+    ports:
+      - "${WEB_HTTP_PORT:-5173}:5173"
+    volumes:
+      - ./web:/app
+      - web_node_modules:/app/node_modules
+    depends_on:
+      - app
+
+  # Playwright shares the Vite network namespace so the application keeps the
+  # same localhost URLs used by a real browser in development.
+  e2e-api-proxy:
+    image: nginx:1.27-alpine
+    profiles: [e2e]
+    network_mode: service:web
+    volumes:
+      - ./docker/nginx/e2e-api-proxy.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - web
+      - nginx
+
+  e2e:
+    image: mcr.microsoft.com/playwright:v1.62.1-noble
+    profiles: [e2e]
+    init: true
+    ipc: host
+    working_dir: /app
+    network_mode: service:web
+    environment:
+      CI: "true"
+    volumes:
+      - ./web:/app
+      - web_node_modules:/app/node_modules
+    depends_on:
+      - e2e-api-proxy
+    command: npm run test:e2e
+
+volumes:
+  pgdata:
+  web_node_modules:

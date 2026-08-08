@@ -1,110 +1,251 @@
-# Fullstack Test Project <img src="https://raw.githubusercontent.com/Coderockr/fullstack-test/refs/heads/main/coderockr.banner.svg" align="right" height="50px" />
+# Investment Manager — Coderockr Fullstack Test
 
-You should see this challenge as an opportunity to create an application following modern development best practices (given the stack of your choice), but also feel free to use your own architecture preferences (coding standards, code organization, third-party libraries, etc). It’s perfectly fine to use vanilla code or any framework or libraries.
+A fullstack application to store and manage investments, with **compound-interest
+gain calculation** (0.52%/month) and **age-based taxation** on withdrawals.
 
-## Scope
+![PHP 8.4](https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&logoColor=white)
+![Laravel 13](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)
+![Vue 3](https://img.shields.io/badge/Vue-3-42b883?logo=vuedotjs&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
 
-In this challenge you should build a **fullstack application** (API + UI) for an application that stores and manages investments, it should have the following features:
+The backend is a **pure JSON REST API** (Laravel) and the frontend is a **separate
+Vue 3 SPA** — the two are fully decoupled and **deploy-independent**. Blade is used
+only for the notification e-mail templates.
 
-### Backend (API)
+## Screenshots
 
-1. __Creation__ of an investment with an owner, a creation date and an amount.
-   1. The creation date of an investment can be today or a date in the past.
-   2. An investment should not be or become negative.
-2. __View__ of an investment with its initial amount and expected balance.
-   1. Expected balance should be the sum of the invested amount and the [gains][].
-   2. If an investment was already withdrawn then the balance must reflect the gains of that investment
-3. __Withdrawal__ of a investment.
-   1. The withdraw will always be the sum of the initial amount and its gains,
-      partial withdrawn is not supported.
-   2. The withdrawal date must be informmed by the user, and it can be a date in the past or today, but can't happen before the investment creation or the future.
-   3. [Taxes][taxes] need to be applied to the withdrawals before showing the final value.
-4. __List__ of a person's investments
-   1. This list should have pagination.
+| Dashboard                                  | Withdrawal preview                              |
+| ------------------------------------------ | ----------------------------------------------- |
+| ![Dashboard](screenshots/01-dashboard.png) | ![Withdraw](screenshots/03-withdraw-dialog.png) |
 
-### Frontend (UI)
+| Investment detail                               |
+| ----------------------------------------------- |
+| ![Detail](screenshots/02-investment-detail.png) |
 
-1. __List__ of investments
-   - Display all investments with basic information (owner, date, amount, current balance, status)
-2. __View__ of a single investment
-   - Display detailed information including gains and final balance
-3. __Create__ investment form
-   - Allow users to create a new investment
-4. __Withdrawal__ action
-   - Allow users to perform a withdrawal and visualize the final taxed amount
+## Features
 
-### Gain Calculation
+**Backend (API)**
 
-The investment will pay 0.52% every month in the same day of the investment creation.
+- Create an investment (owner, creation date — today or past, positive amount).
+- View an investment with its initial amount and **expected balance** (principal + gains); withdrawn investments show the balance frozen at the withdrawal date.
+- **Withdraw** an investment in full, with taxes applied to the gain portion; a `withdrawal-preview` endpoint returns the taxed net for any date without committing.
+- **Paginated** list of a person's investments.
+- Token authentication (Laravel Sanctum); each investment belongs to its owner.
+- Queued **notification e-mails** on creation and withdrawal (Blade templates, caught by Mailpit in dev).
 
-Given that the gain is paid every month, it should be treated as [compound gain][], which means that every new period (month) the amount gained will become part of the investment balance for the next payment.
+**Frontend (UI)**
 
-### Taxation
+- Investment list with owner, date, amount, current balance and status, with pagination.
+- Investment detail with gains and final balance.
+- Create-investment form with client + server validation.
+- Withdrawal action with a **live taxed-net preview** as you pick the date.
+- Responsive layout based on the supplied Figma design, with desktop tables,
+  mobile cards, skeletons, empty/error states, toasts and route transitions.
 
-When money is withdrawn, tax is triggered. Taxes apply only to the gain portion of the money withdrawn. For example, if the initial investment was 1000.00, the current balance is 1200.00, then the taxes will be applied to the 200.00.
+## Business rules
 
-The tax percentage changes according to the age of the investment:
-* If it is less than one year old, the percentage will be 22.5% (tax = 45.00).
-* If it is between one and two years old, the percentage will be 18.5% (tax = 37.00).
-* If older than two years, the percentage will be 15% (tax = 30.00).
+- **Gain:** 0.52% per month, **compounded** on the anniversary day of the creation date. Computed month-by-month, rounding to cents each period.
+- **Tax** (on the gain portion only), by the investment's age:
+  - `< 1 year` → **22.5%** · `1–2 years` → **18.5%** · `> 2 years` → **15%**
+- Example: `R$ 1000.00` created 6 months ago → balance **R$ 1031.61** (gains R$ 31.61); withdrawing today (< 1yr) → tax R$ 7.11, net **R$ 1024.50**.
 
-## Design Reference
+## Architecture
 
-Use the following Figma as a visual and structural reference for the frontend interface:
+```
+┌────────────────────┐   HTTP/JSON (Bearer)   ┌──────────────────────────┐
+│  web/  Vue 3 SPA    │ ─────────────────────▶ │ nginx :8080 → php-fpm     │
+│  Vite · :5173       │ ◀───────────────────── │ Laravel API (api/)        │
+└────────────────────┘        CORS             └──────────────┬───────────┘
+   deploy-independent                                         │ Eloquent
+   (only knows VITE_API_URL)                          ┌───────▼────────┐
+                                                      │ PostgreSQL     │
+                          ┌──────────────┐  queued    └────────────────┘
+                          │ queue worker │ ─────────▶ Mailpit :1025 (UI :8025)
+                          └──────────────┘
+```
 
-- Figma: https://www.figma.com/design/jkilpjx9Q6hZnnCBHZcAWG/Coderockr-Fullstack---Test?node-id=0-1&p=f&t=thQWSMxSHxCJTtAs-0
-- Prototype: https://www.figma.com/proto/jkilpjx9Q6hZnnCBHZcAWG/Coderockr-Fullstack---Test?node-id=1-2&p=f&t=thQWSMxSHxCJTtAs-0&scaling=scale-down-width&content-scaling=fixed&page-id=0%3A1
+The API follows a pragmatic layered design:
 
-__NOTE:__ The layout will be evaluated, but not strictly against the provided design. You can use it as a guideline for structure and organization. Feel free to be creative and enhance the interface with your own ideas, such as visual effects, animations, transitions between screens, and responsive behavior. You may also use UI libraries or create your own components.
+- **Domain** (`api/app/Domain`) — pure, framework-free value objects, enums and services (`GainCalculator`, `TaxCalculator`, `ElapsedMonths`). 100% unit-tested, no database.
+- **Application** (`api/app/Application`) — use-case Actions (`CreateInvestment`, `WithdrawInvestment`, `ListInvestments`) and an `InvestmentCalculator` façade.
+- **Infrastructure / HTTP** — Eloquent models + repository, Form Requests, API Resources, thin controllers.
 
-## Requirements
-1. Create project using any technology of your preference. It’s perfectly OK to use vanilla code or any framework or libraries;
-2. Although you can use as many dependencies as you want, you should manage them wisely;
-3. It is not necessary to send the notification emails, however, the code required for that would be welcome;
-4. The API must be documented in some way.
+Design patterns on display: **Value Object, Strategy, Repository + Dependency Inversion, Command/Use-case, DTO, Adapter (money cast), Observer (event → queued mail), Policy, State/Enum.**
 
-## Deliverables
-The project source code and dependencies should be made available in GitHub. Here are the steps you should follow:
-1. Fork this repository to your GitHub account (create an account if you don't have one, you will need it working with us).
-2. Create a "development" branch and commit the code to it. Do not push the code to the main branch.
-3. Include a README file that describes:
-   - Special build instructions, if any
-   - List of third-party libraries used and short description of why/how they were used
-   - A link to the API documentation.
-4. Once the work is complete, create a pull request from "development" into "main" and send us the link.
-5. Avoid using huge commits hiding your progress. Feel free to work on a branch and use `git rebase` to adjust your commits before submitting the final version.
-6. Create a "screenshots" sub-folder and include at least two screenshots of the app.
+**Deploy-independence:** the only SPA→API coupling is the `VITE_API_URL` string; the only API→SPA coupling is `FRONTEND_URL` (CORS origin + e-mail links). Each app has its own Dockerfile and builds in isolation.
 
-## Coding Standards
-When working on the project be as clean and consistent as possible.
+## Prerequisites
 
-## Project Deadline
-Ideally you'd finish the test project in 5 days. It shouldn't take you longer than a entire week.
+- **Docker** 20.10+ (Compose v2) and **Make**. Nothing else — no local PHP/Node needed.
+- Runs natively on Apple Silicon (arm64) and x86-64.
 
-## Quality Assurance
-Use the following checklist to ensure high quality of the project.
+## Quick start
 
-### General
-- First of all, the application should run without errors.
-- Are all requirements set above met?
-- Is coding style consistent?
-- The API is well documented?
-- The API has unit tests?
-- Is the backend and frontend deploy-independent?
+```bash
+cp .env.example .env
+cp api/.env.example api/.env
+cp web/.env.example web/.env
+make up
+```
 
-## Submission
-1. A link to the Github repository.
-2. Briefly describe how you decided on the tools that you used.
+`make up` builds the images, starts everything, then migrates and seeds demo data —
+in a single command. Then open:
 
-## Have Fun Coding 🤘
-- This challenge description is intentionally vague in some aspects, but if you need assistance feel free to ask for help.
-- If any of the seems out of your current level, you may skip it, but remember to tell us about it in the pull request.
+| Service                    | URL                            |
+| -------------------------- | ------------------------------ |
+| API                        | http://localhost:8080          |
+| API docs (Swagger/OpenAPI) | http://localhost:8080/docs/api |
+| SPA                        | http://localhost:5173          |
+| Mailpit (caught e-mails)   | http://localhost:8025          |
 
-## Credits
+**Demo login:** `demo@coderockr.test` / `password` (pre-filled on the login screen).
 
-This coding challenge was inspired on [kinvoapp/kinvo-back-end-test](https://github.com/kinvoapp/kinvo-back-end-test/blob/2f17d713de739e309d17a1a74a82c3fd0e66d128/README.md)
+> The three `cp` steps are optional — `make up` copies any missing `.env` for you.
 
-[gains]: #gain-calculation
-[taxes]: #taxation
-[interest]: #interest-calculation
-[compound gain]: https://www.investopedia.com/terms/g/gain.asp
+## Special build instructions
+
+- **Apple Silicon:** all images are multi-arch, so **no `platform:` flags** are needed (avoid them — they force slow emulation).
+- **First run:** the queue worker may start before migrations create the `jobs` table; it is set to auto-restart and recovers on its own. Give it a few seconds to deliver the first e-mails to Mailpit.
+- **First E2E run:** `make e2e` downloads the official Playwright image with
+  Chromium. The initial download is large, but subsequent runs reuse Docker's
+  local image cache. No host Node.js, npm or browser installation is required.
+- **Reset everything** (wipe the database and re-seed):
+  ```bash
+  make destroy && make up
+  ```
+- Run `make help` to list every target.
+
+## Troubleshooting
+
+### Composer fails while extracting packages
+
+On an interrupted or unstable first download, Composer may report messages such
+as `End-of-central-directory signature not found`, `not a zipfile` or
+`Install of ... failed`. These errors indicate an incomplete package archive,
+not an incompatible PHP or Composer version.
+
+First, retry the idempotent setup command so Composer can complete the partial
+installation:
+
+```bash
+make up
+```
+
+If the installation remains inconsistent, recreate the local environment and
+run the setup from a clean state:
+
+```bash
+make destroy
+make up
+```
+
+> **Warning:** `make destroy` removes the local PostgreSQL and Docker volumes.
+> Use it only when local development data can be discarded. It does not affect
+> source files or anything committed to Git.
+
+If extraction errors continue after the clean setup, confirm that Docker has
+enough disk space and that the network is stable, then inspect the startup logs:
+
+```bash
+docker compose logs --tail=100 app queue
+```
+
+## Configuration
+
+Three independent `.env` scopes keep the apps decoupled:
+
+| File          | Purpose                            | Key values                                                                           |
+| ------------- | ---------------------------------- | ------------------------------------------------------------------------------------ |
+| `.env` (root) | Values Docker Compose interpolates | `DB_*`, `API_HTTP_PORT`, `WEB_HTTP_PORT`                                             |
+| `api/.env`    | Laravel                            | `DB_HOST=postgres`, `FRONTEND_URL`, `MAIL_HOST=mailpit`, `QUEUE_CONNECTION=database` |
+| `web/.env`    | Vite (client)                      | `VITE_API_URL`                                                                       |
+
+**CORS** is configured in `api/config/cors.php` to allow only `FRONTEND_URL`. Auth uses Sanctum **token** mode (origin-agnostic, no shared cookie), which is why the two apps can be deployed to different hosts.
+
+## Tests & quality
+
+```bash
+make test    # PHP (Pest) + JS (Vitest)
+make e2e     # Playwright against the running application
+make lint    # Pint + PHPStan/Larastan + ESLint + vue-tsc
+```
+
+- **Backend:** 63 tests (Pest). The domain calculators have 100% unit coverage against the challenge's numeric vectors; feature tests cover every endpoint, validation rule, authorization (403/404/409) and the queued mail. Tests run on in-memory SQLite for speed and portability (the app itself runs on PostgreSQL).
+- **Frontend:** Vitest unit tests for the currency/date composables; two Playwright E2E scenarios cover registration, investment creation, compounded balance, withdrawal preview and settlement; `vue-tsc` type-checking; ESLint (vue-ts) + Prettier. Run `make up` before `make e2e`; Playwright and Chromium run in Docker, while screenshots, traces and the HTML report are retained when a scenario fails.
+- Static analysis: **Larastan level 6**; style: **Laravel Pint** (strict types enforced).
+
+## API documentation
+
+- **Interactive UI:** http://localhost:8080/docs/api (generated by [Scramble](https://scramble.dedoc.co) directly from the code — no annotations).
+- **Raw spec:** http://localhost:8080/docs/api.json, and a committed copy at [`api/docs/openapi.json`](api/docs/openapi.json) (OpenAPI 3.1) that any Swagger/Scalar viewer can open offline. Regenerate with `make docs`.
+
+### Endpoints
+
+| Method | Path                                             | Description                      |
+| ------ | ------------------------------------------------ | -------------------------------- |
+| POST   | `/api/register` · `/api/login`                   | Auth → returns `{ user, token }` |
+| POST   | `/api/logout` · GET `/api/user`                  | Session (Bearer)                 |
+| GET    | `/api/investments`                               | Paginated list (own investments) |
+| POST   | `/api/investments`                               | Create                           |
+| GET    | `/api/investments/{id}`                          | View with balance + gains        |
+| GET    | `/api/investments/{id}/withdrawal-preview?date=` | Taxed-net preview                |
+| POST   | `/api/investments/{id}/withdraw`                 | Withdraw (full)                  |
+
+## Third-party libraries
+
+### Backend (`api/`)
+
+| Library                         | Why / how                                                                       |
+| ------------------------------- | ------------------------------------------------------------------------------- |
+| `laravel/framework` 13          | API foundation: routing, Eloquent, validation, queue, mail.                     |
+| `laravel/sanctum`               | Bearer-token auth for the decoupled SPA.                                        |
+| `brick/money` (+ `ext-bcmath`)  | Exact money as integer cents; deterministic compound/tax math (no float drift). |
+| `dedoc/scramble`                | Zero-annotation OpenAPI docs (`/docs/api`) + exported spec.                     |
+| `pestphp/pest`                  | Expressive TDD; datasets drive the financial test vectors.                      |
+| `larastan/larastan` + `phpstan` | Static analysis (`make lint`).                                                  |
+| `laravel/pint`                  | PSR-12 code style.                                                              |
+
+### Frontend (`web/`)
+
+| Library                          | Why / how                                                                              |
+| -------------------------------- | -------------------------------------------------------------------------------------- |
+| `vue` 3 + `vite` + `typescript`  | SPA with `<script setup>` + typed SFCs.                                                |
+| `vue-router`                     | Routing with auth guards; page in the URL for shareable pagination.                    |
+| `pinia`                          | Client/session state for the authenticated user and token.                             |
+| `@tanstack/vue-query`            | Server state: caching, `keepPreviousData` pagination, cache invalidation on mutations. |
+| `tailwindcss` v4                 | Utility-first styling and custom components based on the supplied Figma design.        |
+| `dayjs`                          | Date validation/formatting.                                                            |
+| `@vueuse/core`                   | Debounced withdrawal preview and keyboard interaction helpers.                         |
+| `lucide-vue-next` · `vue-sonner` | Icons · toasts.                                                                        |
+| `eslint` · `prettier` · `vitest` | Lint · format · unit tests.                                                            |
+| `@playwright/test`                | Browser-level coverage of the critical investment journeys.                           |
+
+A native `fetch` wrapper is used instead of axios to keep the dependency list lean.
+
+## Project structure
+
+```
+├── api/          # Laravel JSON API (Domain / Application / Infrastructure)
+├── web/          # Vue 3 + Vite + TS SPA (Vitest + Playwright E2E)
+├── docker/       # PHP + nginx Dockerfiles/config
+├── screenshots/  # app screenshots
+├── docker-compose.yml · docker-compose.prod.yml
+└── Makefile
+```
+
+## Git workflow
+
+Development happens on the **`development`** branch, in small, incremental commits.
+The final delivery is a pull request from `development` into `main`.
+
+## Notes & decisions
+
+- **UI is a decoupled SPA** (not a Blade monolith) to satisfy the "deploy-independent" criterion; Blade is still demonstrated via the notification e-mail templates.
+- **Owner = authenticated user.** "List a person's investments" returns the signed-in user's investments; a request body `owner_id` is ignored.
+- **Token in `localStorage`** is the pragmatic, standard choice for a decoupled SPA. It is XSS-exposed; the production-hardening path is Sanctum's same-site httpOnly-cookie mode. The token lives behind the auth store, so it could be swapped without touching components.
+- A GitHub Actions CI workflow is a natural next step (runs the same `make lint` / `make test` gates) but was left out of scope.
+
+## License
+
+MIT.
