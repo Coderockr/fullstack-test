@@ -15,19 +15,18 @@ only for the notification e-mail templates.
 
 ## Screenshots
 
-| Dashboard (light) | Withdrawal preview |
-|---|---|
+| Dashboard                                  | Withdrawal preview                              |
+| ------------------------------------------ | ----------------------------------------------- |
 | ![Dashboard](screenshots/01-dashboard.png) | ![Withdraw](screenshots/03-withdraw-dialog.png) |
 
-| Investment detail | Dashboard (dark) |
-|---|---|
-| ![Detail](screenshots/02-investment-detail.png) | ![Dark](screenshots/04-dark-mode.png) |
-
-More in [`screenshots/`](screenshots/) — including the API docs and a caught e-mail.
+| Investment detail                               |
+| ----------------------------------------------- |
+| ![Detail](screenshots/02-investment-detail.png) |
 
 ## Features
 
 **Backend (API)**
+
 - Create an investment (owner, creation date — today or past, positive amount).
 - View an investment with its initial amount and **expected balance** (principal + gains); withdrawn investments show the balance frozen at the withdrawal date.
 - **Withdraw** an investment in full, with taxes applied to the gain portion; a `withdrawal-preview` endpoint returns the taxed net for any date without committing.
@@ -36,11 +35,13 @@ More in [`screenshots/`](screenshots/) — including the API docs and a caught e
 - Queued **notification e-mails** on creation and withdrawal (Blade templates, caught by Mailpit in dev).
 
 **Frontend (UI)**
+
 - Investment list with owner, date, amount, current balance and status, with pagination.
 - Investment detail with gains and final balance.
 - Create-investment form with client + server validation.
 - Withdrawal action with a **live taxed-net preview** as you pick the date.
-- Responsive layout, dark mode, skeletons, empty/error states, toasts and route transitions.
+- Responsive layout based on the supplied Figma design, with desktop tables,
+  mobile cards, skeletons, empty/error states, toasts and route transitions.
 
 ## Business rules
 
@@ -91,12 +92,12 @@ make up
 `make up` builds the images, starts everything, then migrates and seeds demo data —
 in a single command. Then open:
 
-| Service | URL |
-|---|---|
-| API | http://localhost:8080 |
+| Service                    | URL                            |
+| -------------------------- | ------------------------------ |
+| API                        | http://localhost:8080          |
 | API docs (Swagger/OpenAPI) | http://localhost:8080/docs/api |
-| SPA | http://localhost:5173 |
-| Mailpit (caught e-mails) | http://localhost:8025 |
+| SPA                        | http://localhost:5173          |
+| Mailpit (caught e-mails)   | http://localhost:8025          |
 
 **Demo login:** `demo@coderockr.test` / `password` (pre-filled on the login screen).
 
@@ -116,11 +117,11 @@ in a single command. Then open:
 
 Three independent `.env` scopes keep the apps decoupled:
 
-| File | Purpose | Key values |
-|---|---|---|
-| `.env` (root) | Values Docker Compose interpolates | `DB_*`, `API_HTTP_PORT`, `WEB_HTTP_PORT` |
-| `api/.env` | Laravel | `DB_HOST=postgres`, `FRONTEND_URL`, `MAIL_HOST=mailpit`, `QUEUE_CONNECTION=database` |
-| `web/.env` | Vite (client) | `VITE_API_URL` |
+| File          | Purpose                            | Key values                                                                           |
+| ------------- | ---------------------------------- | ------------------------------------------------------------------------------------ |
+| `.env` (root) | Values Docker Compose interpolates | `DB_*`, `API_HTTP_PORT`, `WEB_HTTP_PORT`                                             |
+| `api/.env`    | Laravel                            | `DB_HOST=postgres`, `FRONTEND_URL`, `MAIL_HOST=mailpit`, `QUEUE_CONNECTION=database` |
+| `web/.env`    | Vite (client)                      | `VITE_API_URL`                                                                       |
 
 **CORS** is configured in `api/config/cors.php` to allow only `FRONTEND_URL`. Auth uses Sanctum **token** mode (origin-agnostic, no shared cookie), which is why the two apps can be deployed to different hosts.
 
@@ -142,43 +143,43 @@ make lint    # Pint + PHPStan/Larastan + ESLint + vue-tsc
 
 ### Endpoints
 
-| Method | Path | Description |
-|---|---|---|
-| POST | `/api/register` · `/api/login` | Auth → returns `{ user, token }` |
-| POST | `/api/logout` · GET `/api/user` | Session (Bearer) |
-| GET | `/api/investments` | Paginated list (own investments) |
-| POST | `/api/investments` | Create |
-| GET | `/api/investments/{id}` | View with balance + gains |
-| GET | `/api/investments/{id}/withdrawal-preview?date=` | Taxed-net preview |
-| POST | `/api/investments/{id}/withdraw` | Withdraw (full) |
+| Method | Path                                             | Description                      |
+| ------ | ------------------------------------------------ | -------------------------------- |
+| POST   | `/api/register` · `/api/login`                   | Auth → returns `{ user, token }` |
+| POST   | `/api/logout` · GET `/api/user`                  | Session (Bearer)                 |
+| GET    | `/api/investments`                               | Paginated list (own investments) |
+| POST   | `/api/investments`                               | Create                           |
+| GET    | `/api/investments/{id}`                          | View with balance + gains        |
+| GET    | `/api/investments/{id}/withdrawal-preview?date=` | Taxed-net preview                |
+| POST   | `/api/investments/{id}/withdraw`                 | Withdraw (full)                  |
 
 ## Third-party libraries
 
 ### Backend (`api/`)
 
-| Library | Why / how |
-|---|---|
-| `laravel/framework` 13 | API foundation: routing, Eloquent, validation, queue, mail. |
-| `laravel/sanctum` | Bearer-token auth for the decoupled SPA. |
-| `brick/money` (+ `ext-bcmath`) | Exact money as integer cents; deterministic compound/tax math (no float drift). |
-| `dedoc/scramble` | Zero-annotation OpenAPI docs (`/docs/api`) + exported spec. |
-| `pestphp/pest` | Expressive TDD; datasets drive the financial test vectors. |
-| `larastan/larastan` + `phpstan` | Static analysis (`make lint`). |
-| `laravel/pint` | PSR-12 code style. |
+| Library                         | Why / how                                                                       |
+| ------------------------------- | ------------------------------------------------------------------------------- |
+| `laravel/framework` 13          | API foundation: routing, Eloquent, validation, queue, mail.                     |
+| `laravel/sanctum`               | Bearer-token auth for the decoupled SPA.                                        |
+| `brick/money` (+ `ext-bcmath`)  | Exact money as integer cents; deterministic compound/tax math (no float drift). |
+| `dedoc/scramble`                | Zero-annotation OpenAPI docs (`/docs/api`) + exported spec.                     |
+| `pestphp/pest`                  | Expressive TDD; datasets drive the financial test vectors.                      |
+| `larastan/larastan` + `phpstan` | Static analysis (`make lint`).                                                  |
+| `laravel/pint`                  | PSR-12 code style.                                                              |
 
 ### Frontend (`web/`)
 
-| Library | Why / how |
-|---|---|
-| `vue` 3 + `vite` + `typescript` | SPA with `<script setup>` + typed SFCs. |
-| `vue-router` | Routing with auth guards; page in the URL for shareable pagination. |
-| `pinia` | Client/session state only (token, theme). |
-| `@tanstack/vue-query` | Server state: caching, `keepPreviousData` pagination, cache invalidation on mutations. |
-| `tailwindcss` v4 | Utility-first styling + handmade components (light/dark). |
-| `dayjs` | Date validation/formatting. |
-| `@vueuse/core` | `refDebounced` (withdrawal preview), `usePreferredDark`-style theming helpers. |
-| `lucide-vue-next` · `vue-sonner` | Icons · toasts. |
-| `eslint` · `prettier` · `vitest` | Lint · format · unit tests. |
+| Library                          | Why / how                                                                              |
+| -------------------------------- | -------------------------------------------------------------------------------------- |
+| `vue` 3 + `vite` + `typescript`  | SPA with `<script setup>` + typed SFCs.                                                |
+| `vue-router`                     | Routing with auth guards; page in the URL for shareable pagination.                    |
+| `pinia`                          | Client/session state for the authenticated user and token.                             |
+| `@tanstack/vue-query`            | Server state: caching, `keepPreviousData` pagination, cache invalidation on mutations. |
+| `tailwindcss` v4                 | Utility-first styling and custom components based on the supplied Figma design.        |
+| `dayjs`                          | Date validation/formatting.                                                            |
+| `@vueuse/core`                   | Debounced withdrawal preview and keyboard interaction helpers.                         |
+| `lucide-vue-next` · `vue-sonner` | Icons · toasts.                                                                        |
+| `eslint` · `prettier` · `vitest` | Lint · format · unit tests.                                                            |
 
 A native `fetch` wrapper is used instead of axios to keep the dependency list lean.
 

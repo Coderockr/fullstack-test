@@ -1,5 +1,36 @@
-# Vue 3 + TypeScript + Vite
+# Investment Manager Web
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+Vue 3 single-page application for managing investments through the decoupled
+Laravel API. The interface follows the supplied Figma design and includes
+responsive investment listing, creation, detail and withdrawal flows.
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+## Local development
+
+The recommended setup runs the complete project through Docker Compose from the
+repository root:
+
+```bash
+make up
+```
+
+The application will be available at <http://localhost:5173>.
+
+To run only the frontend locally:
+
+```bash
+npm ci
+cp .env.example .env
+npm run dev
+```
+
+## Quality checks
+
+```bash
+npm run type-check
+npm run lint
+npm run test -- --run
+npm run build
+```
+
+For the complete setup and architecture documentation, see the
+[main project README](../README.md).
