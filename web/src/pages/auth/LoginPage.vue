@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
-import { TrendingUp } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth.store'
 import { useToast } from '@/composables/useToast'
 import { ApiError } from '@/types/api'
+import logo from '@/assets/figma/coderockr-logo.svg'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -32,11 +32,9 @@ async function submit() {
 <template>
   <div class="mx-auto flex min-h-[70vh] max-w-sm flex-col justify-center">
     <div class="mb-6 flex flex-col items-center text-center">
-      <span class="grid h-12 w-12 place-items-center rounded-xl bg-indigo-600 text-white">
-        <TrendingUp class="h-7 w-7" />
-      </span>
-      <h1 class="mt-4 text-2xl font-bold">Welcome back</h1>
-      <p class="text-sm text-slate-500 dark:text-slate-400">Sign in to manage your investments.</p>
+      <img :src="logo" alt="Coderockr" class="h-[72px] w-7" />
+      <h1 class="mt-4 text-2xl font-semibold">Welcome back</h1>
+      <p class="text-sm text-[#6b7280]">Sign in to manage your investments.</p>
     </div>
 
     <form class="card space-y-4" @submit.prevent="submit">
@@ -67,12 +65,9 @@ async function submit() {
       </button>
     </form>
 
-    <p class="mt-4 text-center text-sm text-slate-500 dark:text-slate-400">
+    <p class="mt-4 text-center text-sm text-[#6b7280]">
       No account?
-      <RouterLink
-        :to="{ name: 'register' }"
-        class="font-medium text-indigo-600 hover:underline dark:text-indigo-400"
-      >
+      <RouterLink :to="{ name: 'register' }" class="font-medium text-[#1c64f2] hover:underline">
         Create one
       </RouterLink>
     </p>

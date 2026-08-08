@@ -6,17 +6,9 @@ defineProps<{ status: InvestmentStatus }>()
 
 <template>
   <span
-    class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium"
-    :class="
-      status === 'active'
-        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'
-        : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
-    "
+    class="inline-flex items-center justify-center rounded-[10px] px-2.5 py-0.5 text-xs font-normal"
+    :class="status === 'active' ? 'bg-[#def7ec] text-[#03543f]' : 'bg-[#fbd5d5] text-[#9b1c1c]'"
   >
-    <span
-      class="h-1.5 w-1.5 rounded-full"
-      :class="status === 'active' ? 'bg-emerald-500' : 'bg-slate-400'"
-    />
-    {{ status === 'active' ? 'Active' : 'Withdrawn' }}
+    {{ status === 'active' ? 'Invested' : 'Withdrawn' }}
   </span>
 </template>

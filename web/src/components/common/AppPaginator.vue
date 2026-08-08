@@ -14,23 +14,21 @@ function go(page: number) {
 
 <template>
   <div class="flex items-center justify-between text-sm">
-    <p class="text-slate-500 dark:text-slate-400">
-      {{ meta.from ?? 0 }}–{{ meta.to ?? 0 }} of {{ meta.total }}
-    </p>
+    <p class="text-[#6b7280]">{{ meta.from ?? 0 }}–{{ meta.to ?? 0 }} of {{ meta.total }}</p>
     <div class="flex items-center gap-2">
       <button
-        class="rounded-lg border border-slate-200 p-2 transition hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
+        class="rounded-lg border border-[#e5e7eb] p-2 transition hover:bg-[#f9fafb] disabled:opacity-40"
         :disabled="meta.current_page <= 1"
         aria-label="Previous page"
         @click="go(meta.current_page - 1)"
       >
         <ChevronLeft class="h-4 w-4" />
       </button>
-      <span class="tabular-nums text-slate-600 dark:text-slate-300">
+      <span class="tabular-nums text-[#4b5563]">
         {{ meta.current_page }} / {{ meta.last_page }}
       </span>
       <button
-        class="rounded-lg border border-slate-200 p-2 transition hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:hover:bg-slate-800"
+        class="rounded-lg border border-[#e5e7eb] p-2 transition hover:bg-[#f9fafb] disabled:opacity-40"
         :disabled="meta.current_page >= meta.last_page"
         aria-label="Next page"
         @click="go(meta.current_page + 1)"
