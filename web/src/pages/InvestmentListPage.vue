@@ -44,7 +44,7 @@ const activeBalance = computed(() =>
 )
 
 function currentBalance(investment: Investment): string {
-  return formatBRL(investment.status === 'active' ? investment.expected_balance : 0)
+  return formatBRL(investment.expected_balance)
 }
 
 function changePage(next: number) {
@@ -124,6 +124,7 @@ function changePage(next: number) {
               <tr
                 class="border-b border-[#e5e7eb] bg-[#f9fafb] text-xs font-semibold text-[#6b7280]"
               >
+                <th class="table-cell">OWNER</th>
                 <th class="table-cell">DATE</th>
                 <th class="table-cell">AMOUNT</th>
                 <th class="table-cell">CURRENT BALANCE</th>
@@ -138,6 +139,9 @@ function changePage(next: number) {
                 class="text-[#111827]"
                 :class="index % 2 === 1 ? 'bg-[#f9fafb]' : 'bg-white'"
               >
+                <td class="table-cell font-medium">
+                  {{ investment.owner.name }}
+                </td>
                 <td class="table-cell text-sm text-[#6b7280]">
                   {{ formatDate(investment.invested_at) }}
                 </td>

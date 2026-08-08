@@ -18,7 +18,7 @@ const { formatDate } = useDate()
       <div class="min-w-0">
         <p class="truncate text-sm text-[#6b7280]">{{ investment.owner.name }}</p>
         <p class="mt-0.5 text-xl font-semibold text-[#111827] tabular-nums">
-          {{ formatBRL(investment.status === 'active' ? investment.expected_balance : 0) }}
+          {{ formatBRL(investment.expected_balance) }}
         </p>
       </div>
       <StatusBadge :status="investment.status" />
