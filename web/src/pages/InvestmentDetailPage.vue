@@ -27,25 +27,27 @@ const taxRatePercent = computed(() => {
   <section>
     <RouterLink
       :to="{ name: 'investments' }"
-      class="mb-4 inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+      class="mb-4 inline-flex items-center gap-1 text-sm text-[#6b7280] hover:text-[#111827]"
     >
       <ArrowLeft class="h-4 w-4" /> Back to list
     </RouterLink>
 
     <div v-if="isPending" class="card h-64 animate-pulse" />
 
-    <div v-else-if="isError || !investment" class="card text-center text-slate-500">
+    <div v-else-if="isError || !investment" class="card text-center text-[#6b7280]">
       Investment not found.
     </div>
 
     <div v-else class="card">
+      <h1 class="section-title min-h-[38px]">Investment</h1>
+      <div class="figma-divider mb-4" />
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="text-sm text-slate-500 dark:text-slate-400">{{ investment.owner.name }}</p>
-          <h1 class="mt-1 text-3xl font-bold tabular-nums">
+          <p class="text-sm text-[#6b7280]">{{ investment.owner.name }}</p>
+          <p class="mt-1 text-3xl font-semibold text-[#057a55] tabular-nums">
             {{ formatBRL(investment.expected_balance) }}
-          </h1>
-          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          </p>
+          <p class="mt-1 text-sm text-[#6b7280]">
             {{ investment.status === 'withdrawn' ? 'Settled balance' : 'Current expected balance' }}
           </p>
         </div>
@@ -54,51 +56,42 @@ const taxRatePercent = computed(() => {
 
       <dl class="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
         <div>
-          <dt class="text-sm text-slate-400">Invested amount</dt>
+          <dt class="text-sm text-[#9ca3af]">Invested amount</dt>
           <dd class="mt-0.5 font-semibold tabular-nums">{{ formatBRL(investment.amount) }}</dd>
         </div>
         <div>
-          <dt class="text-sm text-slate-400">Gains</dt>
-          <dd class="mt-0.5 font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
+          <dt class="text-sm text-[#9ca3af]">Gains</dt>
+          <dd class="mt-0.5 font-semibold text-[#057a55] tabular-nums">
             +{{ formatBRL(investment.gains) }}
           </dd>
         </div>
         <div>
-          <dt class="text-sm text-slate-400">Elapsed months</dt>
+          <dt class="text-sm text-[#9ca3af]">Elapsed months</dt>
           <dd class="mt-0.5 font-semibold tabular-nums">{{ investment.elapsed_months }}</dd>
         </div>
         <div>
-          <dt class="text-sm text-slate-400">Creation date</dt>
+          <dt class="text-sm text-[#9ca3af]">Creation date</dt>
           <dd class="mt-0.5 font-semibold">{{ formatDate(investment.invested_at) }}</dd>
         </div>
         <div>
-          <dt class="text-sm text-slate-400">Reference date</dt>
+          <dt class="text-sm text-[#9ca3af]">Reference date</dt>
           <dd class="mt-0.5 font-semibold">{{ formatDate(investment.reference_date) }}</dd>
         </div>
       </dl>
 
       <!-- Withdrawal summary -->
-      <div
-        v-if="investment.withdrawal"
-        class="mt-6 rounded-xl bg-slate-50 p-4 dark:bg-slate-800/60"
-      >
-        <h2 class="text-sm font-semibold text-slate-600 dark:text-slate-300">
-          Withdrawal settlement
-        </h2>
+      <div v-if="investment.withdrawal" class="mt-6 rounded-xl bg-[#f9fafb] p-4">
+        <h2 class="text-sm font-semibold text-[#4b5563]">Withdrawal settlement</h2>
         <dl class="mt-3 space-y-2 text-sm">
           <div class="flex justify-between">
-            <dt class="text-slate-500 dark:text-slate-400">Withdrawal date</dt>
+            <dt class="text-[#6b7280]">Withdrawal date</dt>
             <dd>{{ formatDate(investment.withdrawal.date) }}</dd>
           </div>
           <div class="flex justify-between">
-            <dt class="text-slate-500 dark:text-slate-400">Tax ({{ taxRatePercent }})</dt>
-            <dd class="tabular-nums text-red-600 dark:text-red-400">
-              -{{ formatBRL(investment.withdrawal.tax) }}
-            </dd>
+            <dt class="text-[#6b7280]">Tax ({{ taxRatePercent }})</dt>
+            <dd class="text-[#c81e1e] tabular-nums">-{{ formatBRL(investment.withdrawal.tax) }}</dd>
           </div>
-          <div
-            class="flex justify-between border-t border-slate-200 pt-2 text-base font-semibold dark:border-slate-700"
-          >
+          <div class="flex justify-between border-t border-[#e5e7eb] pt-2 text-base font-semibold">
             <dt>Net received</dt>
             <dd class="tabular-nums">{{ formatBRL(investment.withdrawal.net_amount) }}</dd>
           </div>
