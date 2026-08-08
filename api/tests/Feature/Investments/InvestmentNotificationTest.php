@@ -26,6 +26,7 @@ it('queues a creation e-mail to the owner', function () {
         InvestmentCreatedMail::class,
         fn (InvestmentCreatedMail $mail) => $mail->hasTo($this->user->email),
     );
+    Mail::assertQueuedTimes(InvestmentCreatedMail::class, 1);
 });
 
 it('queues a withdrawal e-mail to the owner', function () {
@@ -39,6 +40,7 @@ it('queues a withdrawal e-mail to the owner', function () {
         InvestmentWithdrawnMail::class,
         fn (InvestmentWithdrawnMail $mail) => $mail->hasTo($this->user->email),
     );
+    Mail::assertQueuedTimes(InvestmentWithdrawnMail::class, 1);
 });
 
 it('renders the creation e-mail template', function () {
