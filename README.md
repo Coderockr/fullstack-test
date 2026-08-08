@@ -78,6 +78,8 @@ Design patterns on display: **Value Object, Strategy, Repository + Dependency In
 ## Prerequisites
 
 - **Docker** 20.10+ (Compose v2) and **Make**. Nothing else — no local PHP/Node needed.
+- The optional E2E suite additionally needs **Node.js 20+** and Playwright's Chromium
+  on the host (`cd web && npm ci && npx playwright install chromium`).
 - Runs natively on Apple Silicon (arm64) and x86-64.
 
 ## Quick start
@@ -129,11 +131,12 @@ Three independent `.env` scopes keep the apps decoupled:
 
 ```bash
 make test    # PHP (Pest) + JS (Vitest)
+make e2e     # Playwright against the running application
 make lint    # Pint + PHPStan/Larastan + ESLint + vue-tsc
 ```
 
 - **Backend:** 63 tests (Pest). The domain calculators have 100% unit coverage against the challenge's numeric vectors; feature tests cover every endpoint, validation rule, authorization (403/404/409) and the queued mail. Tests run on in-memory SQLite for speed and portability (the app itself runs on PostgreSQL).
-- **Frontend:** Vitest unit tests for the currency/date composables; `vue-tsc` type-checking; ESLint (vue-ts) + Prettier.
+- **Frontend:** Vitest unit tests for the currency/date composables; two Playwright E2E scenarios cover registration, investment creation, compounded balance, withdrawal preview and settlement; `vue-tsc` type-checking; ESLint (vue-ts) + Prettier. Run `make up` before `make e2e`; screenshots, traces and the HTML report are retained when a scenario fails.
 - Static analysis: **Larastan level 6**; style: **Laravel Pint** (strict types enforced).
 
 ## API documentation
@@ -180,6 +183,7 @@ make lint    # Pint + PHPStan/Larastan + ESLint + vue-tsc
 | `@vueuse/core`                   | Debounced withdrawal preview and keyboard interaction helpers.                         |
 | `lucide-vue-next` · `vue-sonner` | Icons · toasts.                                                                        |
 | `eslint` · `prettier` · `vitest` | Lint · format · unit tests.                                                            |
+| `@playwright/test`                | Browser-level coverage of the critical investment journeys.                           |
 
 A native `fetch` wrapper is used instead of axios to keep the dependency list lean.
 
@@ -187,7 +191,7 @@ A native `fetch` wrapper is used instead of axios to keep the dependency list le
 
 ```
 ├── api/          # Laravel JSON API (Domain / Application / Infrastructure)
-├── web/          # Vue 3 + Vite + TS SPA
+├── web/          # Vue 3 + Vite + TS SPA (Vitest + Playwright E2E)
 ├── docker/       # PHP + nginx Dockerfiles/config
 ├── screenshots/  # app screenshots
 ├── docker-compose.yml · docker-compose.prod.yml
